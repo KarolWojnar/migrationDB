@@ -22,7 +22,7 @@ public class VersionSchema {
 
     private static int findLatestVersion(Connection conn) {
         try {
-            ResultSet rs = conn.createStatement().executeQuery("SELECT MAX(version) FROM " + VERSION_TABLE);
+            ResultSet rs = conn.createStatement().executeQuery("SELECT MAX(id) FROM " + VERSION_TABLE);
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -42,8 +42,8 @@ public class VersionSchema {
     private static int createVersionTable(Connection conn) {
         try {
             conn.createStatement().executeUpdate(
-                    "CREATE TABLE " + VERSION_TABLE + " (version INT NOT NULL PRIMARY KEY, description VARCHAR(255)," +
-                            " checksum BIGINT NOT NULL, success BOOLEAN, create_at TIMESTAMP)"
+                    "CREATE TABLE " + VERSION_TABLE + " (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, version INT NOT NULL, script_name VARCHAR(255)," +
+                            " checksum VARCHAR(255) NOT NULL, success BOOLEAN, create_at TIMESTAMP)"
             );
             return 0;
         } catch (SQLException e) {

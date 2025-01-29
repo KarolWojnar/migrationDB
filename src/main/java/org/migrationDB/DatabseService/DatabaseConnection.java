@@ -13,12 +13,18 @@ public class DatabaseConnection {
     private final String username;
     private final String password;
     private final String driver;
+    private final String pathToMigrationFiles;
 
-    public DatabaseConnection(String driver, String url, String username, String password) {
+    public DatabaseConnection(String driver, String url, String username, String password, String pathToMigrationFiles) {
         this.url = url;
         this.username = username;
         this.password = password;
         this.driver = driver;
+        this.pathToMigrationFiles = pathToMigrationFiles;
+    }
+
+    public String getPathToMigrationFiles() {
+        return pathToMigrationFiles;
     }
 
 
