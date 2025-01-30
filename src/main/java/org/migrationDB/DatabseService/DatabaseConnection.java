@@ -1,26 +1,40 @@
 package org.migrationDB.DatabseService;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
     private static final Logger log = LoggerFactory.getLogger(DatabaseConnection.class);
-    private final String url;
-    private final String username;
-    private final String password;
-    private final String driver;
-    private final String pathToMigrationFiles;
+    private final DataSource dataSource;
+    private String pathToMigrationFiles = "migrations/";
 
     public DatabaseConnection(String driver, String url, String username, String password, String pathToMigrationFiles) {
-        this.url = url;
-        this.username = username;
-        this.password = password;
-        this.driver = driver;
+        validateParameters(driver, url, username, password);
+        HikariConfig config = setHikariConf(url, username, password, driver);
+        this.dataSource = new HikariDataSource(config);
         this.pathToMigrationFiles = pathToMigrationFiles;
+    }
+
+    public DatabaseConnection(String driver, String url, String username, String password) {
+        validateParameters(driver, url, username, password);
+        HikariConfig config = setHikariConf(url, username, password, driver);
+        this.dataSource = new HikariDataSource(config);
+    }
+
+    private HikariConfig setHikariConf(String url, String username, String password, String driver) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setMaximumPoolSize(10); // to change
+        config.setDriverClassName(driver);
+        return config;
     }
 
     public String getPathToMigrationFiles() {
@@ -29,18 +43,14 @@ public class DatabaseConnection {
 
 
     public Connection connect() throws SQLException {
-        try {
-            if (driver != null && !driver.isEmpty()) {
-                Class.forName(driver);
-            }
-            Class.forName(driver);
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Driver not found. ", e);
-        }
-
-        log.info("Connecting to database {}", url);
-        return DriverManager.getConnection(url, username, password);
+        log.info("Connecting to database...");
+        return this.dataSource.getConnection();
     }
 
+    private void validateParameters(String driver, String url, String username, String password) {
+        if (driver == null || url == null || username == null || password == null) {
+            throw new IllegalArgumentException("Database connection parameters cannot be null");
+        }
+    }
 
 }

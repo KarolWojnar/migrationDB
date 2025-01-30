@@ -1,21 +1,16 @@
 package org.migrationDB.Migrations;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class CheckSumCalculator {
 
-    public static String calculateCheckSum(InputStream file) throws NoSuchAlgorithmException, IOException {
+    public static String calculateCheckSum(String fileContent) throws NoSuchAlgorithmException, IOException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] buffer = new byte[1024];
-        int bytesRead;
+        byte[] hashBytes = digest.digest(fileContent.getBytes(StandardCharsets.UTF_8));
 
-        while ((bytesRead = file.read(buffer)) != -1) {
-            digest.update(buffer, 0, bytesRead);
-        }
-        byte[] hashBytes = digest.digest();
         StringBuilder hexString = new StringBuilder();
         for (byte hashByte : hashBytes) {
             String hex = Integer.toHexString(0xff & hashByte);

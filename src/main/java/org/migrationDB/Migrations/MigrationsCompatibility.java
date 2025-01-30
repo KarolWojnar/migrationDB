@@ -1,26 +1,26 @@
 package org.migrationDB.Migrations;
 
 import org.migrationDB.DatabseService.DatabaseConnection;
-import org.migrationDB.DatabseService.ExecuteQuery;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.util.Map;
+import java.util.List;
 
 public class MigrationsCompatibility {
 
-    public static void checkCompatibility(Connection conn, DatabaseConnection dbConnection, int hId) throws NoSuchAlgorithmException {
-        for (int i = 1; i <= hId; i++) {
-            Map<String, String> result = ExecuteQuery.findNameAndCheckSumById(conn, i);
-            String filePath = dbConnection.getPathToMigrationFiles() + result.get("script_name");
+    public static void checkCompatibility(DatabaseConnection dbConnection, List<MigrationSchema> migrationSchemas) throws NoSuchAlgorithmException {
+        for (MigrationSchema ms : migrationSchemas) {
+            String filePath = dbConnection.getPathToMigrationFiles() + ms.script_name();
             try (InputStream inputStream = MigrationsCompatibility.class.getClassLoader().getResourceAsStream(filePath)) {
                 if (inputStream == null) {
-                    throw new RuntimeException("Can't find file " + filePath);
+                    throw new FileNotFoundException("Can't find file " + filePath);
                 }
-                String currentFileCheckSum = CheckSumCalculator.calculateCheckSum(inputStream);
-                if (!currentFileCheckSum.equals(result.get("checksum"))) {
+
+                String fileContent = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                String currentFileCheckSum = CheckSumCalculator.calculateCheckSum(fileContent);
+                if (!currentFileCheckSum.equals(ms.checksum())) {
                     throw new RuntimeException("Migrated files has been changed: " + filePath);
                 }
             } catch (FileNotFoundException e) {
