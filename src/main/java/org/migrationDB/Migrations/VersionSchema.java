@@ -18,7 +18,7 @@ public class VersionSchema {
             return new ArrayList<>();
         }
 
-        final String query = "SELECT * FROM " + VERSION_TABLE + " WHERE script_name LIKE 'V%'";
+        final String query = "SELECT * FROM " + VERSION_TABLE;
         List<MigrationSchema> migrations = new ArrayList<>();
 
         try (Statement statement = conn.createStatement();
@@ -51,8 +51,13 @@ public class VersionSchema {
     private static void createVersionTable(Connection conn) {
         try {
             conn.createStatement().executeUpdate(
-                    "CREATE TABLE " + VERSION_TABLE + " (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, version INT NOT NULL, script_name VARCHAR(255)," +
-                            " checksum VARCHAR(255) NOT NULL, success BOOLEAN, created_at TIMESTAMP)"
+                    "CREATE TABLE " + VERSION_TABLE + " (" +
+                            "id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, " +
+                            "version INT NOT NULL, " +
+                            "script_name VARCHAR(255) NOT NULL, " +
+                            "checksum VARCHAR(255) NOT NULL, " +
+                            "success BOOLEAN DEFAULT FALSE, " +
+                            "created_at TIMESTAMP)"
             );
         } catch (SQLException e) {
             throw new RuntimeException("Error creating version table. ", e);

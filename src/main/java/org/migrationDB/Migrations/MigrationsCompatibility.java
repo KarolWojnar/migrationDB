@@ -1,6 +1,6 @@
 package org.migrationDB.Migrations;
 
-import org.migrationDB.DatabseService.DatabaseConnection;
+import org.migrationDB.DatabaseService.DatabaseConnection;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;

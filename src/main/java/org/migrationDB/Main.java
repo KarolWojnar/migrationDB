@@ -1,9 +1,7 @@
 package org.migrationDB;
 
-import org.migrationDB.DatabseService.DatabaseConnection;
+import org.migrationDB.DatabaseService.DatabaseConnection;
 import org.migrationDB.Migrations.MigrationExecutor;
-
-import java.security.InvalidAlgorithmParameterException;
 
 public class Main {
     public static void main(String[] args) {
@@ -15,10 +13,6 @@ public class Main {
                 "migrations/"
         );
 
-        try {
-            MigrationExecutor.makeMigration(dbConnection);
-        } catch (InvalidAlgorithmParameterException e) {
-            throw new RuntimeException(e);
-        }
+        MigrationExecutor.makeMigration(dbConnection);
     }
 }

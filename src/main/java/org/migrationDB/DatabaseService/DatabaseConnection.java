@@ -1,4 +1,4 @@
-package org.migrationDB.DatabseService;
+package org.migrationDB.DatabaseService;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -32,7 +32,7 @@ public class DatabaseConnection {
         config.setJdbcUrl(url);
         config.setUsername(username);
         config.setPassword(password);
-        config.setMaximumPoolSize(10); // to change
+        config.setMaximumPoolSize(1);
         config.setDriverClassName(driver);
         return config;
     }

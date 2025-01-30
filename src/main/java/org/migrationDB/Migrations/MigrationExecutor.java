@@ -1,13 +1,14 @@
 package org.migrationDB.Migrations;
 
-import org.migrationDB.DatabseService.DatabaseConnection;
-import org.migrationDB.DatabseService.ExecuteQuery;
+import org.apache.ibatis.jdbc.ScriptRunner;
+import org.migrationDB.DatabaseService.DatabaseConnection;
+import org.migrationDB.DatabaseService.ExecuteQuery;
 import org.migrationDB.Service.FileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -16,7 +17,7 @@ import java.util.List;
 public class MigrationExecutor {
     private static final Logger log = LoggerFactory.getLogger(VersionSchema.class);
 
-    public static void makeMigration(DatabaseConnection dbConnection) throws InvalidAlgorithmParameterException {
+    public static void makeMigration(DatabaseConnection dbConnection) {
         try (Connection conn = dbConnection.connect()) {
             List<MigrationSchema> migrationSchemas = VersionSchema.getCurrentVersion(conn);
             if (!migrationSchemas.isEmpty()) {
@@ -36,7 +37,7 @@ public class MigrationExecutor {
         } catch (SQLException e) {
             throw new RuntimeException("Something went wrong during connecting. ", e);
         } catch (NoSuchAlgorithmException e) {
-            throw new InvalidAlgorithmParameterException("Something went wrong during", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -46,9 +47,12 @@ public class MigrationExecutor {
             try {
                 conn.setAutoCommit(false);
 
-                for (String script : fileScripts.split(";")) {
-                    ExecuteQuery.executeScript(conn, script);
+                try (Reader reader = new StringReader(fileScripts)) {
+                    ScriptRunner scriptRunner = new ScriptRunner(conn);
+                    scriptRunner.setStopOnError(true);
+                    scriptRunner.runScript(reader);
                 }
+
                 ExecuteQuery.recordMigrationFile(conn, fileName, fileScripts);
                 conn.commit();
 
