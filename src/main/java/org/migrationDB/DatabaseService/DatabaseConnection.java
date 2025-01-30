@@ -32,8 +32,15 @@ public class DatabaseConnection {
         config.setJdbcUrl(url);
         config.setUsername(username);
         config.setPassword(password);
-        config.setMaximumPoolSize(1);
         config.setDriverClassName(driver);
+
+        config.setMaximumPoolSize(5);
+        config.setMinimumIdle(1);
+        config.setConnectionTimeout(3000);
+        config.setIdleTimeout(60000);
+        config.setMaxLifetime(300000);
+        config.setValidationTimeout(1000);
+
         return config;
     }
 

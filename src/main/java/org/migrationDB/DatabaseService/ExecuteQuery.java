@@ -3,10 +3,10 @@ package org.migrationDB.DatabaseService;
 import org.migrationDB.Migrations.CheckSumCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
+import java.sql.ResultSet;
 
 public class ExecuteQuery {
     private final static String VERSION_TABLE = "version_control";
@@ -25,5 +25,33 @@ public class ExecuteQuery {
             ps.executeUpdate();
             log.info("New migration {} saved.", fileName);
         }
+    }
+
+    public static void updateRepeatable(Connection conn, String scriptName, String currentFileCheckSum) {
+        String query = "UPDATE " + VERSION_TABLE + " SET checksum = ? WHERE script_name = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, currentFileCheckSum);
+            ps.setString(2, scriptName);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            log.info("Can't execute repeatable migration. {}", e);
+        }
+    }
+
+    public static boolean checkIsInDatabase(Connection conn, String fileName) {
+        String query = "SELECT COUNT(*) FROM " + VERSION_TABLE + " WHERE script_name = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, fileName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                if (count > 0) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            log.info("Can't execute repeatable migration. {}", e);
+        }
+        return false;
     }
 }
