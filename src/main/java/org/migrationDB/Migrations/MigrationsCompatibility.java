@@ -17,11 +17,10 @@ public class MigrationsCompatibility {
                 if (inputStream == null) {
                     throw new FileNotFoundException("Can't find file " + filePath);
                 }
-
                 String fileContent = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
                 String currentFileCheckSum = CheckSumCalculator.calculateCheckSum(fileContent);
-                if (!currentFileCheckSum.equals(ms.checksum())) {
-                    throw new RuntimeException("Migrated files has been changed: " + filePath);
+                if (!currentFileCheckSum.equals(ms.checksum()) && ms.script_name().startsWith("V")) {
+                    throw new RuntimeException("Migrated file has been changed: " + filePath);
                 }
             } catch (FileNotFoundException e) {
                 throw new RuntimeException("Can't find file.", e);

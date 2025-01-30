@@ -1,0 +1,1 @@
+UPDATE cars SET year = (year + 1);

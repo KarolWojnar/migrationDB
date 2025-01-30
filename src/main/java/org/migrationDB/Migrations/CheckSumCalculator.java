@@ -1,6 +1,6 @@
 package org.migrationDB.Migrations;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,5 +21,14 @@ public class CheckSumCalculator {
         }
 
         return hexString.toString();
+    }
+
+    public static String calculateCheckSumFromFile(File file) throws RuntimeException {
+        try (InputStream is = new FileInputStream(file)) {
+            return calculateCheckSum(new String(is.readAllBytes(), StandardCharsets.UTF_8));
+
+        } catch (IOException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

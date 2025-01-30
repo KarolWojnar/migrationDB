@@ -21,17 +21,27 @@ public class MigrationExecutor {
         try (Connection conn = dbConnection.connect()) {
             List<MigrationSchema> migrationSchemas = VersionSchema.getCurrentVersion(conn);
             if (!migrationSchemas.isEmpty()) {
-                MigrationsCompatibility.checkCompatibility(dbConnection, migrationSchemas);
+               MigrationsCompatibility.checkCompatibility(dbConnection, migrationSchemas);
             }
 
             List<String> sortedFilesName = FileService.getFilesFromDirectory(dbConnection.getPathToMigrationFiles(), migrationSchemas);
-
             assert sortedFilesName != null;
-            if (!sortedFilesName.isEmpty()) {
-                readScriptsAndExecute(conn, dbConnection.getPathToMigrationFiles(), sortedFilesName);
 
+            List<String> versionedFiles = sortedFilesName.stream()
+                    .filter(name -> name.startsWith("V"))
+                    .toList();
+            List<String> repeatableFiles = sortedFilesName.stream()
+                    .filter(name -> name.startsWith("R"))
+                    .toList();
+
+            if (!versionedFiles.isEmpty()) {
+                readScriptsAndExecute(conn, dbConnection.getPathToMigrationFiles(), versionedFiles);
             } else {
                 log.info("No migrations to execute.");
+            }
+
+            if (!repeatableFiles.isEmpty()) {
+                readScriptsAndExecute(conn, dbConnection.getPathToMigrationFiles(), repeatableFiles);
             }
 
         } catch (SQLException e) {
@@ -53,7 +63,14 @@ public class MigrationExecutor {
                     scriptRunner.runScript(reader);
                 }
 
-                ExecuteQuery.recordMigrationFile(conn, fileName, fileScripts);
+                if (fileName.startsWith("R") && ExecuteQuery.checkIsInDatabase(conn, fileName)) {
+                    log.info("Updating repeatable migration...");
+                    ExecuteQuery.updateRepeatable(conn, fileName, CheckSumCalculator.calculateCheckSum(fileScripts));
+                } else {
+                    log.info("Recording migration...");
+                    ExecuteQuery.recordMigrationFile(conn, fileName, fileScripts);
+                }
+
                 conn.commit();
 
             } catch (SQLException | NoSuchAlgorithmException | IOException e) {

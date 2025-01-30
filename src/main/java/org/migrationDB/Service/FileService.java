@@ -1,5 +1,6 @@
 package org.migrationDB.Service;
 
+import org.migrationDB.Migrations.CheckSumCalculator;
 import org.migrationDB.Migrations.MigrationSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +45,20 @@ public class FileService {
                 String fileName = file.getName();
                 if (file.isFile() && fileName.endsWith(".sql")) {
                     boolean isAlreadyMigrated = migrationSchemas.stream()
-                            .anyMatch(schema -> schema.script_name().equals(fileName));
+                                .anyMatch(schema -> (schema.script_name().equals(fileName)));
 
-                    if (!isAlreadyMigrated) {
+                    String checksum = "";
+                    if (file.getName().startsWith("R")) {
+                        checksum = CheckSumCalculator.calculateCheckSumFromFile(file);
+                    }
+
+                    String checkSumFromList = migrationSchemas.stream()
+                            .filter(schema -> schema.script_name().equals(fileName))
+                            .findFirst()
+                            .map(MigrationSchema::checksum)
+                            .orElse("");
+
+                    if (!isAlreadyMigrated || (fileName.startsWith("R") && (checkSumFromList.isEmpty() || !checksum.equals(checkSumFromList)))) {
                         fileNames.add(fileName);
                     }
                 }
