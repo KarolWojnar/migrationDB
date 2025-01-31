@@ -33,7 +33,6 @@ public class DatabaseConnection {
         config.setUsername(username);
         config.setPassword(password);
         config.setDriverClassName(driver);
-
         config.setMaximumPoolSize(5);
         config.setMinimumIdle(1);
         config.setConnectionTimeout(3000);

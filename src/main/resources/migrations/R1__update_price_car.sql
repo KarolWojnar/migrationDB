@@ -1,1 +1,0 @@
-UPDATE cars SET price = (price + 1);

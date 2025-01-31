@@ -43,24 +43,42 @@ public class VersionSchema {
 
     private static boolean tableExists(Connection conn) throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
-        try (ResultSet rs = meta.getTables(null, null, VERSION_TABLE, new String[]{"TABLE"})) {
+        try (ResultSet rs = meta.getTables(null, conn.getSchema(), VERSION_TABLE, new String[]{"TABLE"})) {
             return rs.next();
         }
     }
 
     private static void createVersionTable(Connection conn) {
         try {
+            String database = conn.getMetaData().getDatabaseProductName();
+
+            String dbVersion = "AUTO_INCREMENT";
+            switch (database) {
+                case "PostgreSQL":
+                    dbVersion = "GENERATED ALWAYS AS IDENTITY";
+                    conn.createStatement().execute("CREATE SCHEMA IF NOT EXISTS public");
+                    break;
+                case "SQL Server":
+                    dbVersion = "IDENTITY";
+                    break;
+                case "Oracle":
+                    dbVersion = "GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1)";
+                    break;
+                default:
+                    break;
+            }
+
             conn.createStatement().executeUpdate(
                     "CREATE TABLE " + VERSION_TABLE + " (" +
-                            "id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, " +
+                            "id INT " + dbVersion + " PRIMARY KEY, " +
                             "version INT NOT NULL, " +
                             "script_name VARCHAR(255) NOT NULL, " +
                             "checksum VARCHAR(255) NOT NULL, " +
                             "success BOOLEAN DEFAULT FALSE, " +
-                            "created_at TIMESTAMP)"
+                            "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
             );
         } catch (SQLException e) {
-            throw new RuntimeException("Error creating version table. ", e);
+            throw new RuntimeException("Error creating version table.", e);
         }
     }
 }
