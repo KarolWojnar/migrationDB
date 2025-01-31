@@ -2,11 +2,13 @@ package org.migrationDB.Migrations;
 
 import org.migrationDB.DatabaseService.DatabaseConnection;
 import org.migrationDB.DatabaseService.ExecuteQuery;
+import org.migrationDB.Exception.MigrationException;
+import org.migrationDB.Exception.MigrationFileException;
+import org.migrationDB.Exception.MigrationSqlException;
 import org.migrationDB.Service.FileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -43,15 +45,18 @@ public class MigrationExecutor {
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Something went wrong during connecting. ", e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new MigrationException("Something went wrong during connecting. ", e);
         }
     }
 
     private static void readScriptsAndExecute(Connection conn, String pathToDirectory, List<String> sortedFilesName) {
         for (String fileName : sortedFilesName) {
-            String fileScripts = FileService.readScriptsFromFile(fileName, pathToDirectory);
+            String fileScripts = null;
+            try {
+                fileScripts = FileService.readScriptsFromFile(fileName, pathToDirectory);
+            } catch (IOException e) {
+                throw new MigrationFileException("Can't read file: " + fileName, e);
+            }
             try {
                 conn.setAutoCommit(false);
 
@@ -68,31 +73,34 @@ public class MigrationExecutor {
                 log.info("Migration completed successfully: {}", fileName);
                 conn.commit();
 
-            } catch (SQLException | NoSuchAlgorithmException | IOException e) {
+            }
+            catch (SQLException e) {
                 try {
-                    log.error("Migration failed: {}", fileName, e);
                     conn.rollback();
+                    log.error("Migration failed: {}", fileName, e);
                 } catch (SQLException ex) {
-                    log.error("Something went wrong during rollback", ex);
+                    throw new MigrationException("Something went wrong during rollback", ex);
                 }
-                throw new RuntimeException("Migration failed: " + e.getMessage());
+                throw new MigrationException("Something went wrong during migration", e);
             } finally {
                 try {
                     conn.setAutoCommit(true);
                 } catch (SQLException e) {
-                    log.error("Error while resetting auto-commit: {}", e.getMessage());
+                    log.error("Something went wrong during setAutoCommit(true)", e);
                 }
             }
         }
     }
 
-    private static void executeQueries(Connection conn, String fileScripts) throws SQLException {
+    private static void executeQueries(Connection conn, String fileScripts) {
         String[] queries = fileScripts.split(";");
         for (String query : queries) {
             query = query.trim();
             if (!query.isEmpty()) {
                 try (Statement st = conn.createStatement()) {
                     st.executeUpdate(query);
+                } catch (SQLException e) {
+                    throw new MigrationSqlException("Error executing query: " + query, e);
                 }
             }
         }

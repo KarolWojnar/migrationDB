@@ -1,10 +1,8 @@
 package org.migrationDB.Service;
 
+import org.migrationDB.Exception.MigrationFileException;
 import org.migrationDB.Migrations.CheckSumCalculator;
 import org.migrationDB.Migrations.MigrationSchema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,29 +15,12 @@ import java.util.List;
 
 public class FileService {
 
-    private static final Logger log = LoggerFactory.getLogger(FileService.class);
-
     public static List<String> getFilesFromDirectory(String pathToMigrationFiles, List<MigrationSchema> migrationSchemas) {
         List<String> fileNames = new ArrayList<>();
 
         try {
             URL resourceUrl = FileService.class.getClassLoader().getResource(pathToMigrationFiles);
-            if (resourceUrl == null) {
-                log.error("Can't find directory: {}", pathToMigrationFiles);
-                return null;
-            }
-
-            File directory = new File(resourceUrl.toURI());
-            if (!directory.isDirectory()) {
-                log.error("Path is not a directory: {}", directory.getAbsolutePath());
-                return null;
-            }
-
-            File[] files = directory.listFiles();
-            if (files == null) {
-                log.warn("Can't get files from directory: {}", directory.getAbsolutePath());
-                return null;
-            }
+            File[] files = findFilesFromPath(pathToMigrationFiles, resourceUrl);
 
             for (File file : files) {
                 String fileName = file.getName();
@@ -69,12 +50,27 @@ public class FileService {
             }
 
         } catch (URISyntaxException e) {
-            log.error("Invalid directory URI", e);
-        } catch (SecurityException e) {
-            log.error("Access denied to directory", e);
+            throw new MigrationFileException("Can't get files from directory: " + pathToMigrationFiles);
         }
 
         return fileNames;
+    }
+
+    private static File[] findFilesFromPath(String pathToMigrationFiles, URL resourceUrl) throws URISyntaxException {
+        if (resourceUrl == null) {
+            throw new MigrationFileException("Can't find directory: " + pathToMigrationFiles);
+        }
+
+        File directory = new File(resourceUrl.toURI());
+        if (!directory.isDirectory()) {
+            throw new MigrationFileException("Not a directory: " + pathToMigrationFiles);
+        }
+
+        File[] files = directory.listFiles();
+        if (files == null) {
+            throw new MigrationFileException("Can't get files from directory: " + pathToMigrationFiles);
+        }
+        return files;
     }
 
     private static List<String> sortFilesByVersion(List<String> fileNames) {
@@ -87,16 +83,12 @@ public class FileService {
                 .toList();
     }
 
-    public static String readScriptsFromFile(String fileName, String pathToDirectory) {
+    public static String readScriptsFromFile(String fileName, String pathToDirectory) throws IOException {
         try (InputStream is = FileService.class.getClassLoader().getResourceAsStream(pathToDirectory + fileName)) {
             if (is == null) {
                 throw new FileNotFoundException("Migration file not found: " + fileName);
             }
-
             return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }

@@ -2,6 +2,7 @@ package org.migrationDB.DatabaseService;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.migrationDB.Exception.DatabaseConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,14 +49,18 @@ public class DatabaseConnection {
     }
 
 
-    public Connection connect() throws SQLException {
+    public Connection connect() {
         log.info("Connecting to database...");
-        return this.dataSource.getConnection();
+        try {
+            return this.dataSource.getConnection();
+        } catch (SQLException e) {
+            throw new DatabaseConnectionException("Error connecting to database", e);
+        }
     }
 
     private void validateParameters(String driver, String url, String username, String password) {
         if (driver == null || url == null || username == null || password == null) {
-            throw new IllegalArgumentException("Database connection parameters cannot be null");
+            throw new DatabaseConnectionException("Database connection parameters cannot be null");
         }
     }
 

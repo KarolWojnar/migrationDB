@@ -1,5 +1,6 @@
 package org.migrationDB.Migrations;
 
+import org.migrationDB.Exception.MigrationSqlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.sql.*;
@@ -11,9 +12,8 @@ public class VersionSchema {
     private static final Logger log = LoggerFactory.getLogger(VersionSchema.class);
 
 
-    public static List<MigrationSchema> getCurrentVersion(Connection conn) throws SQLException {
+    public static List<MigrationSchema> getCurrentVersion(Connection conn) {
         if (!tableExists(conn)) {
-            log.info("Creating version control table.");
             createVersionTable(conn);
             return new ArrayList<>();
         }
@@ -27,31 +27,43 @@ public class VersionSchema {
                 migrations.add(mapResultToObject(rs));
             }
             return migrations;
+        } catch (SQLException e) {
+            throw new MigrationSqlException("Error during reading meta data.", e);
         }
     }
 
-    private static MigrationSchema mapResultToObject(ResultSet rs) throws SQLException {
-        return new MigrationSchema(
-                rs.getInt("id"),
-                rs.getInt("version"),
-                rs.getString("script_name"),
-                rs.getString("checksum"),
-                rs.getString("created_at"),
-                rs.getBoolean("success")
-        );
+    private static MigrationSchema mapResultToObject(ResultSet rs) {
+        try {
+            return new MigrationSchema(
+                    rs.getInt("id"),
+                    rs.getInt("version"),
+                    rs.getString("script_name"),
+                    rs.getString("checksum"),
+                    rs.getString("created_at"),
+                    rs.getBoolean("success")
+            );
+        } catch (SQLException e) {
+            throw new MigrationSqlException("Error while mapping result.", e);
+        }
     }
 
-    private static boolean tableExists(Connection conn) throws SQLException {
-        DatabaseMetaData meta = conn.getMetaData();
-        try (ResultSet rs = meta.getTables(null, conn.getSchema(), VERSION_TABLE, new String[]{"TABLE"})) {
-            return rs.next();
+    private static boolean tableExists(Connection conn) {
+        DatabaseMetaData meta = null;
+        try {
+            meta = conn.getMetaData();
+            try (ResultSet rs = meta.getTables(null, conn.getSchema(), VERSION_TABLE, new String[]{"TABLE"})) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new MigrationSqlException("Error during reading meta data.", e);
         }
     }
 
     private static void createVersionTable(Connection conn) {
         try {
-            String database = conn.getMetaData().getDatabaseProductName();
+            log.info("Creating version control table.");
 
+            String database = conn.getMetaData().getDatabaseProductName();
             String dbVersion = "AUTO_INCREMENT";
             switch (database) {
                 case "PostgreSQL":
@@ -78,7 +90,7 @@ public class VersionSchema {
                             "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
             );
         } catch (SQLException e) {
-            throw new RuntimeException("Error creating version table.", e);
+            throw new MigrationSqlException("Error creating version table.", e);
         }
     }
 }
