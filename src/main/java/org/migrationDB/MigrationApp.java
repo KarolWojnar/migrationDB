@@ -21,7 +21,6 @@ public class MigrationApp {
                 "",
                 "migrations/"
         );
-
         VersionRepository versionRepository = new VersionRepository();
         MigrationService migrationService = new MigrationService();
         FileService fileService = new FileService();
@@ -38,5 +37,8 @@ public class MigrationApp {
 
     public void undoMigration(String version) {
         migrationExecutor.undoMigration(dbConnection, version);
+    }
+    public void undoMigration() {
+        migrationExecutor.undoMigration(dbConnection, "0");
     }
 }

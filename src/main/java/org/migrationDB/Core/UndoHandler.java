@@ -2,7 +2,6 @@ package org.migrationDB.Core;
 
 import org.migrationDB.Config.DatabaseConnection;
 import org.migrationDB.Data.MigrationSchema;
-import org.migrationDB.Exception.MigrationException;
 import org.migrationDB.Exception.MigrationSqlException;
 import org.migrationDB.Service.FileService;
 import org.migrationDB.Service.MigrationService;
@@ -27,7 +26,8 @@ public class UndoHandler {
     public void undo(DatabaseConnection dbConnection, Connection conn, String version) {
         List<MigrationSchema> versionMigrationName = migrationService.getVersionMigrationName(conn, version);
         if (versionMigrationName.isEmpty()) {
-            throw new MigrationException("Nothing to undo.");
+            log.error("No migration found for undo version: {}", version);
+            return;
         }
         for (MigrationSchema migrationObj : versionMigrationName) {
             String undoVersion = "U" + migrationObj.version() + "__";

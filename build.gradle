@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'java'
 }
 
@@ -30,6 +31,12 @@ dependencies {
     implementation 'com.microsoft.sqlserver:mssql-jdbc:12.6.3.jre11'
     // H2
     implementation 'com.h2database:h2:2.2.224'
+}
+
+shadowJar {
+    manifest {
+        attributes 'Main-Class': 'org.migrationDB.Main'
+    }
 }
 
 test {
