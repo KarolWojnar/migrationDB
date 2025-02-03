@@ -13,6 +13,7 @@ public class Main {
                 "migrations/"
         );
 
-        MigrationExecutor.makeMigration(dbConnection);
+        MigrationExecutor me = new MigrationExecutor();
+        me.makeMigration(dbConnection);
     }
 }
