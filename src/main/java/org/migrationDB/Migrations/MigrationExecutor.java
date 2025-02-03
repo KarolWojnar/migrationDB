@@ -17,7 +17,7 @@ import java.util.List;
 public class MigrationExecutor {
     private static final Logger log = LoggerFactory.getLogger(VersionSchema.class);
 
-    public static void makeMigration(DatabaseConnection dbConnection) {
+    public void makeMigration(DatabaseConnection dbConnection) {
         try (Connection conn = dbConnection.connect()) {
             List<MigrationSchema> migrationSchemas = VersionSchema.getCurrentVersion(conn);
             if (!migrationSchemas.isEmpty()) {
@@ -45,11 +45,11 @@ public class MigrationExecutor {
             }
 
         } catch (SQLException e) {
-            throw new MigrationException("Something went wrong during connecting. ", e);
+            throw new MigrationSqlException("Something went wrong during connecting. ", e);
         }
     }
 
-    private static void readScriptsAndExecute(Connection conn, String pathToDirectory, List<String> sortedFilesName) {
+    private void readScriptsAndExecute(Connection conn, String pathToDirectory, List<String> sortedFilesName) {
         for (String fileName : sortedFilesName) {
             String fileScripts = null;
             try {
@@ -79,7 +79,7 @@ public class MigrationExecutor {
                     conn.rollback();
                     log.error("Migration failed: {}", fileName, e);
                 } catch (SQLException ex) {
-                    throw new MigrationException("Something went wrong during rollback", ex);
+                    throw new MigrationSqlException("Something went wrong during rollback", ex);
                 }
                 throw new MigrationException("Something went wrong during migration", e);
             } finally {
@@ -92,7 +92,7 @@ public class MigrationExecutor {
         }
     }
 
-    private static void executeQueries(Connection conn, String fileScripts) {
+    private void executeQueries(Connection conn, String fileScripts) {
         String[] queries = fileScripts.split(";");
         for (String query : queries) {
             query = query.trim();

@@ -73,7 +73,7 @@ public class FileService {
         return files;
     }
 
-    private static List<String> sortFilesByVersion(List<String> fileNames) {
+    static List<String> sortFilesByVersion(List<String> fileNames) {
         return fileNames.stream()
                 .sorted((f1, f2) -> {
                     int v1 = Integer.parseInt(f1.split("__")[0].substring(1));
