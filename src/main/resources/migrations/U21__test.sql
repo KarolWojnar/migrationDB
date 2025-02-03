@@ -1,1 +1,1 @@
-DELETE FROM players WHERE ID = 200;
+DELETE FROM players WHERE id = 200;

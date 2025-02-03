@@ -53,13 +53,6 @@ public class DatabaseConnection {
         }
     }
 
-    public void shutdown() {
-        if (dataSource != null && !dataSource.isClosed()) {
-            dataSource.close();
-            log.info("Connection pool closed");
-        }
-    }
-
     private void validateParameters(String driver, String url, String username, String password) {
         if (driver == null || url == null || username == null || password == null) {
             throw new DatabaseConnectionException("Database connection parameters cannot be null");

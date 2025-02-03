@@ -38,6 +38,7 @@ public class VersionRepository {
             return new MigrationSchema(
                     rs.getInt("id"),
                     rs.getInt("version"),
+                    rs.getString("type"),
                     rs.getString("script_name"),
                     rs.getString("checksum"),
                     rs.getString("created_at"),
@@ -48,10 +49,9 @@ public class VersionRepository {
         }
     }
 
-    private boolean tableExists(Connection conn) {
-        DatabaseMetaData meta = null;
+    public boolean tableExists(Connection conn) {
         try {
-            meta = conn.getMetaData();
+            DatabaseMetaData meta = conn.getMetaData();
             try (ResultSet rs = meta.getTables(null, conn.getSchema(), VERSION_TABLE, new String[]{"TABLE"})) {
                 return rs.next();
             }
@@ -85,6 +85,7 @@ public class VersionRepository {
                     "CREATE TABLE " + VERSION_TABLE + " (" +
                             "id INT " + dbVersion + " PRIMARY KEY, " +
                             "version INT NOT NULL, " +
+                            "type VARCHAR(10) NOT NULL, " +
                             "script_name VARCHAR(255) NOT NULL, " +
                             "checksum VARCHAR(255) NOT NULL, " +
                             "success BOOLEAN DEFAULT FALSE, " +

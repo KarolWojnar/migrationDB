@@ -3,14 +3,18 @@ package org.migrationDB.Service;
 import org.migrationDB.Exception.MigrationFileException;
 import org.migrationDB.Data.MigrationSchema;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FileService {
 
@@ -18,18 +22,17 @@ public class FileService {
         List<String> fileNames = new ArrayList<>();
 
         try {
-            URL resourceUrl = FileService.class.getClassLoader().getResource(pathToMigrationFiles);
-            File[] files = findFilesFromPath(pathToMigrationFiles, resourceUrl);
+            List<Path> files = findFilesInDirectory(pathToMigrationFiles);
 
-            for (File file : files) {
-                String fileName = file.getName();
-                if (file.isFile() && fileName.endsWith(".sql")) {
+            for (Path file : files) {
+                String fileName = file.getFileName().toString();
+                if (fileName.endsWith(".sql")) {
                     boolean isAlreadyMigrated = migrationSchemas.stream()
                                 .anyMatch(schema -> (schema.script_name().equals(fileName)));
 
                     String checksum = "";
-                    if (file.getName().startsWith("R")) {
-                        checksum = MigrationsCompatibilityService.calculateCheckSumFromFile(file);
+                    if (fileName.startsWith("R")) {
+                        checksum = MigrationsCompatibilityService.calculateCheckSumFromFile(file.toFile());
                     }
 
                     String checkSumFromList = migrationSchemas.stream()
@@ -48,28 +51,27 @@ public class FileService {
                 fileNames = sortFilesByVersion(fileNames);
             }
 
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException | IOException e) {
             throw new MigrationFileException("Can't get files from directory: " + pathToMigrationFiles);
         }
 
         return fileNames;
     }
 
-    private File[] findFilesFromPath(String pathToMigrationFiles, URL resourceUrl) throws URISyntaxException {
-        if (resourceUrl == null) {
-            throw new MigrationFileException("Can't find directory: " + pathToMigrationFiles);
-        }
+    public String getUndoFileNameByVersion(String pathToUndo, String versionFile) {
+        try {
+            List<Path> files = findFilesInDirectory(pathToUndo);
 
-        File directory = new File(resourceUrl.toURI());
-        if (!directory.isDirectory()) {
-            throw new MigrationFileException("Not a directory: " + pathToMigrationFiles);
+            for (Path file : files) {
+                String fileName = file.getFileName().toString();
+                if (fileName.startsWith(versionFile)) {
+                    return fileName;
+                }
+            }
+            throw new MigrationFileException("Can't find " + versionFile + "... version of undo.\nMigration files must be rolled back sequentially.");
+        } catch (URISyntaxException | IOException e) {
+            throw new MigrationFileException("Can't get files from directory: " + pathToUndo, e);
         }
-
-        File[] files = directory.listFiles();
-        if (files == null) {
-            throw new MigrationFileException("Can't get files from directory: " + pathToMigrationFiles);
-        }
-        return files;
     }
 
     public List<String> sortFilesByVersion(List<String> fileNames) {
@@ -82,12 +84,35 @@ public class FileService {
                 .toList();
     }
 
-    public String readScriptsFromFile(String fileName, String pathToDirectory) throws IOException {
-        try (InputStream is = FileService.class.getClassLoader().getResourceAsStream(pathToDirectory + fileName)) {
-            if (is == null) {
-                throw new FileNotFoundException("Migration file not found: " + fileName);
+    public String readScriptsFromFile(String fileName, String pathToDirectory) {
+        try {
+            URL resourceUrl = getClass().getClassLoader().getResource(pathToDirectory + fileName);
+            if (resourceUrl == null) {
+                throw new MigrationFileException("Migration file not found: " + fileName);
             }
-            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+            Path filePath = Paths.get(resourceUrl.toURI());
+            return Files.readString(filePath);
+        } catch (URISyntaxException | IOException e) {
+            throw new MigrationFileException("Migration file not found: " + fileName, e);
+        }
+    }
+
+    private List<Path> findFilesInDirectory(String directoryPath) throws URISyntaxException, IOException {
+        URL resourceUrl = getClass().getClassLoader().getResource(directoryPath);
+        if (resourceUrl == null) {
+            throw new MigrationFileException("Can't find directory: " + directoryPath);
+        }
+
+        Path directory = Paths.get(resourceUrl.toURI());
+        if (!Files.isDirectory(directory)) {
+            throw new MigrationFileException("Not a directory: " + directoryPath);
+        }
+
+        try (Stream<Path> paths = Files.list(directory)) {
+            return paths.filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".sql"))
+                    .collect(Collectors.toList());
         }
     }
 }
