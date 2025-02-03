@@ -1,4 +1,4 @@
-package org.migrationDB.DatabaseService;
+package org.migrationDB.Config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -6,13 +6,12 @@ import org.migrationDB.Exception.DatabaseConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
     private static final Logger log = LoggerFactory.getLogger(DatabaseConnection.class);
-    private final DataSource dataSource;
+    private final HikariDataSource dataSource;
     private String pathToMigrationFiles = "migrations/";
 
     public DatabaseConnection(String driver, String url, String username, String password, String pathToMigrationFiles) {
@@ -35,11 +34,7 @@ public class DatabaseConnection {
         config.setPassword(password);
         config.setDriverClassName(driver);
         config.setMaximumPoolSize(5);
-        config.setMinimumIdle(1);
-        config.setConnectionTimeout(3000);
-        config.setIdleTimeout(60000);
-        config.setMaxLifetime(300000);
-        config.setValidationTimeout(1000);
+        config.setConnectionTimeout(30000);
 
         return config;
     }
@@ -55,6 +50,13 @@ public class DatabaseConnection {
             return this.dataSource.getConnection();
         } catch (SQLException e) {
             throw new DatabaseConnectionException("Error connecting to database", e);
+        }
+    }
+
+    public void shutdown() {
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+            log.info("Connection pool closed");
         }
     }
 

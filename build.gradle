@@ -16,6 +16,7 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.5.6'
     implementation 'com.zaxxer:HikariCP:5.1.0'
     implementation 'org.apache.ibatis:ibatis-core:3.0'
+    implementation 'com.github.jsqlparser:jsqlparser:4.9'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.3'
     // MySQL
     implementation 'mysql:mysql-connector-java:8.0.33'

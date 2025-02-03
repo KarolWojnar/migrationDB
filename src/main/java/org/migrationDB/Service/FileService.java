@@ -1,8 +1,7 @@
 package org.migrationDB.Service;
 
 import org.migrationDB.Exception.MigrationFileException;
-import org.migrationDB.Migrations.CheckSumCalculator;
-import org.migrationDB.Migrations.MigrationSchema;
+import org.migrationDB.Data.MigrationSchema;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,7 +14,7 @@ import java.util.List;
 
 public class FileService {
 
-    public static List<String> getFilesFromDirectory(String pathToMigrationFiles, List<MigrationSchema> migrationSchemas) {
+    public List<String> getFilesFromDirectory(String pathToMigrationFiles, List<MigrationSchema> migrationSchemas) {
         List<String> fileNames = new ArrayList<>();
 
         try {
@@ -30,7 +29,7 @@ public class FileService {
 
                     String checksum = "";
                     if (file.getName().startsWith("R")) {
-                        checksum = CheckSumCalculator.calculateCheckSumFromFile(file);
+                        checksum = MigrationsCompatibilityService.calculateCheckSumFromFile(file);
                     }
 
                     String checkSumFromList = migrationSchemas.stream()
@@ -56,7 +55,7 @@ public class FileService {
         return fileNames;
     }
 
-    private static File[] findFilesFromPath(String pathToMigrationFiles, URL resourceUrl) throws URISyntaxException {
+    private File[] findFilesFromPath(String pathToMigrationFiles, URL resourceUrl) throws URISyntaxException {
         if (resourceUrl == null) {
             throw new MigrationFileException("Can't find directory: " + pathToMigrationFiles);
         }
@@ -73,7 +72,7 @@ public class FileService {
         return files;
     }
 
-    static List<String> sortFilesByVersion(List<String> fileNames) {
+    public List<String> sortFilesByVersion(List<String> fileNames) {
         return fileNames.stream()
                 .sorted((f1, f2) -> {
                     int v1 = Integer.parseInt(f1.split("__")[0].substring(1));
@@ -83,7 +82,7 @@ public class FileService {
                 .toList();
     }
 
-    public static String readScriptsFromFile(String fileName, String pathToDirectory) throws IOException {
+    public String readScriptsFromFile(String fileName, String pathToDirectory) throws IOException {
         try (InputStream is = FileService.class.getClassLoader().getResourceAsStream(pathToDirectory + fileName)) {
             if (is == null) {
                 throw new FileNotFoundException("Migration file not found: " + fileName);

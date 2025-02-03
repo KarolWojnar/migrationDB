@@ -32,7 +32,7 @@ INSERT INTO leagues_teams (team_id, league_id) VALUES
     (1, 6),
     (2, 6),
     (3, 6),
-    (4, 6),
+    (4, 6s),
     (5, 6),
     (6, 6),
     (7, 6),

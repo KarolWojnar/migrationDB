@@ -28,6 +28,6 @@ CREATE TABLE contracts (
 CREATE TABLE leagues_teams (
        team_id BIGINT NOT NULL,
        league_id BIGINT NOT NULL,
-       FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+       FOREIGN KEY (team_id) REFERENCES teasms(id) ON DELETE CASCADE,
        FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
 );

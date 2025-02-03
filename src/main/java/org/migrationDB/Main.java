@@ -1,7 +1,10 @@
 package org.migrationDB;
 
-import org.migrationDB.DatabaseService.DatabaseConnection;
-import org.migrationDB.Migrations.MigrationExecutor;
+import org.migrationDB.Config.DatabaseConnection;
+import org.migrationDB.Core.MigrationExecutor;
+import org.migrationDB.Repository.VersionRepository;
+import org.migrationDB.Service.FileService;
+import org.migrationDB.Service.MigrationHistoryService;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,7 +16,10 @@ public class Main {
                 "migrations/"
         );
 
-        MigrationExecutor me = new MigrationExecutor();
+        VersionRepository vr = new VersionRepository();
+        MigrationHistoryService mhs = new MigrationHistoryService();
+        FileService fs = new FileService();
+        MigrationExecutor me = new MigrationExecutor(mhs, vr, fs);
         me.makeMigration(dbConnection);
     }
 }

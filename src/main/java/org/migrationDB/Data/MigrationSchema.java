@@ -1,4 +1,4 @@
-package org.migrationDB.Migrations;
+package org.migrationDB.Data;
 
 public record MigrationSchema(
         int id,

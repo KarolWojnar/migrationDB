@@ -1,5 +1,6 @@
-package org.migrationDB.Migrations;
+package org.migrationDB.Repository;
 
+import org.migrationDB.Data.MigrationSchema;
 import org.migrationDB.Exception.MigrationSqlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,12 +8,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VersionSchema {
+public class VersionRepository {
     private final static String VERSION_TABLE = "version_control";
-    private static final Logger log = LoggerFactory.getLogger(VersionSchema.class);
+    private static final Logger log = LoggerFactory.getLogger(VersionRepository.class);
 
 
-    public static List<MigrationSchema> getCurrentVersion(Connection conn) {
+    public List<MigrationSchema> getCurrentVersion(Connection conn) {
         if (!tableExists(conn)) {
             createVersionTable(conn);
             return new ArrayList<>();
@@ -32,7 +33,7 @@ public class VersionSchema {
         }
     }
 
-    private static MigrationSchema mapResultToObject(ResultSet rs) {
+    private MigrationSchema mapResultToObject(ResultSet rs) {
         try {
             return new MigrationSchema(
                     rs.getInt("id"),
@@ -47,7 +48,7 @@ public class VersionSchema {
         }
     }
 
-    private static boolean tableExists(Connection conn) {
+    private boolean tableExists(Connection conn) {
         DatabaseMetaData meta = null;
         try {
             meta = conn.getMetaData();
@@ -59,7 +60,7 @@ public class VersionSchema {
         }
     }
 
-    private static void createVersionTable(Connection conn) {
+    private void createVersionTable(Connection conn) {
         try {
             log.info("Creating version control table.");
 

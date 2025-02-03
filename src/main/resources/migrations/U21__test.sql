@@ -1,0 +1,1 @@
+DELETE FROM players WHERE ID = 200;

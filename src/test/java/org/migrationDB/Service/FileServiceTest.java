@@ -10,8 +10,9 @@ class FileServiceTest {
 
     @Test
     void shouldSortFilesByVersion() {
+        FileService fs = new FileService();
         List<String> files = List.of("V2__test.sql", "V12__init.sql", "V3__data.sql");
-        List<String> sorted = FileService.sortFilesByVersion(files);
+        List<String> sorted = fs.sortFilesByVersion(files);
 
         assertEquals("V12__init.sql", sorted.get(2));
         assertEquals("V3__data.sql", sorted.get(1));

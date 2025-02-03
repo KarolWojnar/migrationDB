@@ -1,21 +1,19 @@
-package org.migrationDB.DatabaseService;
+package org.migrationDB.Service;
 
 import org.migrationDB.Exception.MigrationSqlException;
-import org.migrationDB.Migrations.CheckSumCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.sql.*;
 import java.sql.ResultSet;
 
-public class ExecuteQuery {
+public class MigrationHistoryService {
     private final static String VERSION_TABLE = "version_control";
-    private static final Logger log = LoggerFactory.getLogger(ExecuteQuery.class);
+    private final static Logger log = LoggerFactory.getLogger(MigrationHistoryService.class);
 
-    public static void recordMigrationFile(Connection conn, String fileName, String fileScripts) {
+    public void recordMigrationFile(Connection conn, String fileName, String fileScripts) {
         int version = Integer.parseInt(fileName.split("__")[0].substring(1));
-        String checkSum = CheckSumCalculator.calculateCheckSum(fileScripts);
-        String query = String.format("INSERT INTO %s (version, script_name, checksum, success) VALUES (?, ?, ?, ?)",
-                VERSION_TABLE);
+        String checkSum = MigrationsCompatibilityService.calculateCheckSum(fileScripts);
+        String query = "INSERT INTO " + VERSION_TABLE + " (version, script_name, checksum, success) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, version);
             ps.setString(2, fileName);
@@ -28,7 +26,7 @@ public class ExecuteQuery {
         }
     }
 
-    public static void updateRepeatable(Connection conn, String scriptName, String currentFileCheckSum) {
+    public void updateRepeatable(Connection conn, String scriptName, String currentFileCheckSum) {
         String query = "UPDATE " + VERSION_TABLE + " SET checksum = ? WHERE script_name = ?";
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, currentFileCheckSum);
@@ -39,7 +37,7 @@ public class ExecuteQuery {
         }
     }
 
-    public static boolean checkIsInDatabase(Connection conn, String fileName) {
+    public boolean checkIsInDatabase(Connection conn, String fileName) {
         String query = "SELECT COUNT(*) FROM " + VERSION_TABLE + " WHERE script_name = ?";
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, fileName);
