@@ -4,6 +4,7 @@ import org.migrationDB.Config.DatabaseConnection;
 import org.migrationDB.Core.MigrationExecutor;
 import org.migrationDB.Core.MigrationHandler;
 import org.migrationDB.Core.UndoHandler;
+import org.migrationDB.Data.InitModel;
 import org.migrationDB.Repository.VersionRepository;
 import org.migrationDB.Service.FileService;
 import org.migrationDB.Service.MigrationService;
@@ -13,13 +14,13 @@ public class MigrationApp {
     private final MigrationExecutor migrationExecutor;
     private final DatabaseConnection dbConnection;
 
-    public MigrationApp(String path) {
+    public MigrationApp(InitModel im) {
         this.dbConnection = new DatabaseConnection(
-                "com.mysql.cj.jdbc.Driver",
-                "jdbc:mysql://localhost:3306/test",
-                "root",
-                "",
-                path
+                im.driver(),
+                im.url(),
+                im.user(),
+                im.password(),
+                im.pathToScripts()
         );
         VersionRepository versionRepository = new VersionRepository();
         MigrationService migrationService = new MigrationService();

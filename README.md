@@ -9,18 +9,22 @@ This will create a fat JAR file in the `build/libs` directory.
 2. **Run the CLI Tool** :
    <br>Use the following command to execute the CLI tool
 ```bash
-java -jar build/libs/migration-tool.jar --path=<migration_path> --action=<action> --version=<version>
+java -jar build/libs/migration-tool.jar --path=<migration_path> --action=<action> --version=<version> --driver=<driver> --user=<user> --url=<url> --password=<password>
 ```
 **Options**<br>
 `--path`: Path to the folder containing migration scripts (required).<br>
 `--action`: Action to perform (`migrate` or `undo`) (required).<br>
-`--version`: Version to undo.<br>
+`--version`: Version to undo (optional).<br>
+`--driver`: Driver of database.<br>
+`--user`: Database user.<br>
+`--url`: Url to database.<br>
+`--password`: Password to database (optional).<br>
 **Example commands:**
 ```bash
-java -jar build/libs/migration-tool.jar --path=C:/path/to/migration/ --action=migrate
+java -jar build/libs/migration-tool.jar --path=C:/path/to/migration/ --action=migrate --driver=com.mysql.cj.jdbc.Driver --url=jdbc:mysql://localhost:3306/test --user=root
 ```
 ```bash
-java -jar build/libs/migration-tool.jar --path=migrations/ --action=undo --version=4
+java -jar build/libs/migration-tool.jar --path=migrations/ --action=undo --version=4 --driver=com.mysql.cj.jdbc.Driver --url=jdbc:mysql://localhost:3306/test --user=root
 ```
 
 # Usage Examples
@@ -33,7 +37,7 @@ Undo Scripts : `U<version>__<description>.sql`
 
 # Example Folder Structure
 
-```jsonpath
+```yaml
 migrations
 ├── V1__create_users_table.sql
 ├── V2__add_email_column.sql
