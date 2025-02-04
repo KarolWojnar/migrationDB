@@ -1,16 +1,11 @@
 package org.migrationDB;
 
+import org.migrationDB.Core.CLIMigration;
+
 public class Main {
 
     public static void main(String[] args) {
-        MigrationApp migrationApp = new MigrationApp();
-        // history migrations
-        migrationApp.showHistory();
-        // run migrations
-        migrationApp.runMigrations();
-        migrationApp.showHistory();
-        // undo migrations
-        migrationApp.undoMigration("4"); // optional version as string
-        migrationApp.showHistory();
+        CLIMigration cli = new CLIMigration();
+        cli.validateCliActions(args);
     }
 }

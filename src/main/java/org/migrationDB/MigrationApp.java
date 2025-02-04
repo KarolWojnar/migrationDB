@@ -13,13 +13,13 @@ public class MigrationApp {
     private final MigrationExecutor migrationExecutor;
     private final DatabaseConnection dbConnection;
 
-    public MigrationApp() {
+    public MigrationApp(String path) {
         this.dbConnection = new DatabaseConnection(
                 "com.mysql.cj.jdbc.Driver",
                 "jdbc:mysql://localhost:3306/test",
                 "root",
                 "",
-                "src/main/resources/migrations/"
+                path
         );
         VersionRepository versionRepository = new VersionRepository();
         MigrationService migrationService = new MigrationService();
