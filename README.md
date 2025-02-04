@@ -1,12 +1,13 @@
 # Running the CLI Tool
 To use MigrationDB as a Command-Line Interface (CLI) tool, follow these steps:
 1. **Build the Project**:
-<br/>Use Gradle to build the project and generate the JAR file
+   - Download project from [here](https://github.com/KarolWojnar/migrationDB/archive/refs/heads/migration-cli.zip)
+   - Use Gradle to build the project and generate the JAR file
 ```bash
 ./gradlew shadowJar
 ```
-This will create a fat JAR file in the `build/libs` directory.
-2. **Run the CLI Tool** :
+This will create a fat JAR file in the `build/libs` directory.<br>
+2. **Run the CLI Tool**:
    <br>Use the following command to execute the CLI tool
 ```bash
 java -jar build/libs/migration-tool.jar --path=<migration_path> --action=<action> --version=<version> --driver=<driver> --user=<user> --url=<url> --password=<password>
