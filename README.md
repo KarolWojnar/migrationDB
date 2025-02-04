@@ -1,7 +1,7 @@
 # Running as Library
 ## Getting Started
 ### Download project from repository
-Download the project [here]([https://github.com/KarolWojnar/migrationDB.git](https://github.com/KarolWojnar/migrationDB/archive/refs/heads/master.zip))
+Download the project [here](https://github.com/KarolWojnar/migrationDB/archive/refs/heads/master.zip)
 
 ### Create library
 After open project use `./gradlew publishToMavenLocal` to create and publish library locally
