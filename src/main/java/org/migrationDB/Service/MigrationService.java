@@ -57,7 +57,7 @@ public class MigrationService {
     public void deleteMigration(Connection conn, String version) {
         try {
             String query = "DELETE FROM " + VERSION_TABLE + " WHERE version = ? AND type = 'V' AND success = true ";
-            QueryExecutorService.executeQuery(conn, query, version);
+            QueryExecutorService.executeQuery(conn, query, Integer.parseInt(version));
         } catch (SQLException e) {
             throw new MigrationSqlException("Error deleting migration.", e);
         }
@@ -67,7 +67,7 @@ public class MigrationService {
         String query = "SELECT * FROM " + VERSION_TABLE + " WHERE type = ? AND version >= ? AND success = true ORDER BY version DESC";
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, "V");
-            ps.setString(2, version);
+            ps.setInt(2, Integer.parseInt(version));
             ResultSet rs = ps.executeQuery();
             List<MigrationSchema> migrationNames = new ArrayList<>();
             while (rs.next()) {
@@ -101,7 +101,7 @@ public class MigrationService {
         }
     }
 
-    private List<String> splitQueries(String fileScripts) {
+    public List<String> splitQueries(String fileScripts) {
         try {
             Statements statements = CCJSqlParserUtil.parseStatements(fileScripts);
             return statements.stream().map(Object::toString).toList();

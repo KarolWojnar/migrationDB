@@ -43,8 +43,8 @@ public class UndoHandler {
             conn.setAutoCommit(false);
 
             migrationService.executeQueries(conn, undoScripts);
-            log.info("Undo completed successfully: {}", versionMigrationName);
             migrationService.deleteMigration(conn, version);
+            log.info("Undo completed successfully: {}", versionMigrationName);
 
             conn.commit();
         } catch (SQLException e) {

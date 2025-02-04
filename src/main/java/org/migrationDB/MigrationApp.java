@@ -35,6 +35,10 @@ public class MigrationApp {
         migrationExecutor.makeMigration(dbConnection);
     }
 
+    public void showHistory() {
+        migrationExecutor.showHistory(dbConnection);
+    }
+
     public void undoMigration(String version) {
         migrationExecutor.undoMigration(dbConnection, version);
     }

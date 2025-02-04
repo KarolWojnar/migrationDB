@@ -5,9 +5,6 @@ import org.migrationDB.Config.DatabaseConnection;
 import org.migrationDB.Exception.CheckSumMismatchException;
 import org.migrationDB.Exception.MigrationException;
 import org.migrationDB.Exception.MigrationFileException;
-
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -55,14 +52,6 @@ public class MigrationsCompatibilityService {
             throw new MigrationException("Can't calculate checksum", e);
         }
 
-    }
-
-    public static String calculateCheckSumFromFile(File file) {
-        try (InputStream is = new FileInputStream(file)) {
-            return calculateCheckSum(new String(is.readAllBytes(), StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new MigrationFileException("Can't read file " + file.getName(), e);
-        }
     }
 
     public static void checkMaxVersion(int maxVersion, List<String> versionedFiles) {

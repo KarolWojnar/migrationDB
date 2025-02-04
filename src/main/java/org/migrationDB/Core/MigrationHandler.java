@@ -63,31 +63,38 @@ public class MigrationHandler {
             try {
                 conn.setAutoCommit(false);
                 fileScripts = fileService.readScriptsFromFile(fileName, pathToDirectory);
-                migrationService.executeQueries(conn, fileScripts);
-
-                if (fileName.startsWith("R") && migrationService.checkIsInDatabase(conn, fileName)) {
-                    log.info("Updating repeatable migration...");
-                    migrationService.updateRepeatable(conn, fileName, MigrationsCompatibilityService.calculateCheckSum(fileScripts));
-                } else {
-                    log.info("Recording migration...");
-                    migrationService.recordMigrationFile(conn, fileName, fileScripts);
-                }
-
+                executeScript(conn, fileName, fileScripts);
                 conn.commit();
                 log.info("Migration completed successfully: {}", fileName);
 
             } catch (SQLException e) {
-                try {
-                    if (fileScripts != null) {
-                        dropCreatedTables(conn, fileScripts);
-                    }
-                    conn.rollback();
-                    log.error("Migration failed: {}. Rolling back changes.", fileName);
-                } catch (SQLException ex) {
-                    throw new MigrationSqlException("Error during rollback.", ex);
-                }
-                throw new DatabaseConnectionException("Error during migration execution.", e);
+                handleMigrationFail(conn, fileName, e, fileScripts);
             }
+        }
+    }
+
+    private void handleMigrationFail(Connection conn, String fileName, SQLException e, String fileScripts) {
+        try {
+            if (fileScripts != null) {
+                dropCreatedTables(conn, fileScripts);
+            }
+            conn.rollback();
+            log.error("Migration failed: {}. Rolling back changes.", fileName);
+        } catch (SQLException ex) {
+            throw new MigrationSqlException("Error during rollback.", ex);
+        }
+        throw new DatabaseConnectionException("Error during migration execution.", e);
+    }
+
+    private void executeScript(Connection conn, String fileName, String fileScripts) throws SQLException {
+        migrationService.executeQueries(conn, fileScripts);
+
+        if (fileName.startsWith("R") && migrationService.checkIsInDatabase(conn, fileName)) {
+            log.info("Updating repeatable migration...");
+            migrationService.updateRepeatable(conn, fileName, MigrationsCompatibilityService.calculateCheckSum(fileScripts));
+        } else {
+            log.info("Recording migration...");
+            migrationService.recordMigrationFile(conn, fileName, fileScripts);
         }
     }
 

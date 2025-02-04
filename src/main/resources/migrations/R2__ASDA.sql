@@ -1,0 +1,1 @@
+UPDATE contracts SET salary = 1 WHERE end_date < CURRENT_DATE;
