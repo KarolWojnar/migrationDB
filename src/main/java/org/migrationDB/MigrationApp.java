@@ -19,7 +19,7 @@ public class MigrationApp {
                 "jdbc:mysql://localhost:3306/test",
                 "root",
                 "",
-                "migrations/"
+                "src/main/resources/migrations/"
         );
         VersionRepository versionRepository = new VersionRepository();
         MigrationService migrationService = new MigrationService();

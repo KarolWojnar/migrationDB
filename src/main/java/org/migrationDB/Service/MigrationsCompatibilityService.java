@@ -6,8 +6,10 @@ import org.migrationDB.Exception.CheckSumMismatchException;
 import org.migrationDB.Exception.MigrationException;
 import org.migrationDB.Exception.MigrationFileException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -17,11 +19,9 @@ public class MigrationsCompatibilityService {
     public static void checkCompatibility(DatabaseConnection dbConnection, List<MigrationSchema> migrationSchemas) {
         for (MigrationSchema ms : migrationSchemas) {
             String filePath = dbConnection.getPathToMigrationFiles() + ms.script_name();
-            try (InputStream inputStream = MigrationsCompatibilityService.class.getClassLoader().getResourceAsStream(filePath)) {
-                if (inputStream == null) {
-                    throw new MigrationFileException("Can't find file " + filePath);
-                }
-                String fileContent = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            Path path = Paths.get(filePath);
+            try {
+                String fileContent = Files.readString(path, StandardCharsets.UTF_8);
                 String currentFileCheckSum = calculateCheckSum(fileContent);
                 if (!currentFileCheckSum.equals(ms.checksum()) && ms.script_name().startsWith("V")) {
                     throw new CheckSumMismatchException("Migrated file has been changed: " + filePath);
