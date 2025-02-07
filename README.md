@@ -51,6 +51,6 @@ Place your migration scripts in the specified folder. Scripts should follow this
 migrations/
 ├── V1__create_users_table.sql
 ├── V2__add_email_column.sql
-├── R__update_statistics.sql
+├── R1__update_statistics.sql
 └── U1__drop_users_table.sql
 ```
