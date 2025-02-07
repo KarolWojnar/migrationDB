@@ -42,6 +42,6 @@ Undo Scripts : `U<version>__<description>.sql`
 migrations
 ├── V1__create_users_table.sql
 ├── V2__add_email_column.sql
-├── R__update_statistics.sql
+├── R1__update_statistics.sql
 └── U1__drop_users_table.sql
 ```
